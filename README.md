@@ -360,21 +360,6 @@ Kemudian jalankan seluruh cell menggunakan Google Colab atau Jupyter Notebook.
 
 ---
 
-## 10. Struktur Repository
-
-```text
-H1D024046-PraktikumKB-Pertemuan8
-│
-├── main.ipynb
-├── README.md
-└── rockpaperscissors/
-    ├── paper/
-    ├── rock/
-    └── scissors/
-```
-
----
-
 Nama : Edgina Syafa  
 NIM : H1D024046  
 Shift : F
