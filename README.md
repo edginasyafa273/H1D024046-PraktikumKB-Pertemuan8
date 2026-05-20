@@ -1,20 +1,11 @@
 # H1D024046-PraktikumKB-Pertemuan8
+# Implementasi Convolutional Neural Network (CNN) untuk Klasifikasi Gambar Rock-Paper-Scissors
 
-Repositori pengumpulan tugas praktikum mata kuliah Kecerdasan Buatan (Pertemuan 8).
-
-## Implementasi Convolutional Neural Network (CNN) untuk Klasifikasi Gambar Rock-Paper-Scissors
-
-Proyek ini berisi implementasi model Deep Learning menggunakan metode **Convolutional Neural Network (CNN)** dengan TensorFlow/Keras untuk melakukan klasifikasi gambar tangan menjadi tiga kategori, yaitu:
-
-- Rock (Batu)
-- Paper (Kertas)
-- Scissors (Gunting)
-
-Dataset yang digunakan berupa kumpulan citra Rock-Paper-Scissors yang diproses menggunakan **ImageDataGenerator**, kemudian dilatih menggunakan arsitektur CNN dengan beberapa layer konvolusi dan pooling.
+Program ini merupakan implementasi metode **Convolutional Neural Network (CNN)** menggunakan **TensorFlow** dan **Keras** untuk mengklasifikasikan gambar ke dalam tiga kategori, yaitu **rock (batu)**, **paper (kertas)**, dan **scissors (gunting)**. Dataset diproses menggunakan **ImageDataGenerator**, kemudian model CNN dilatih dan dievaluasi untuk melihat performanya.
 
 ---
 
-## Library yang Digunakan
+## 1. Library yang Digunakan
 
 Program menggunakan beberapa library Python berikut:
 
@@ -23,67 +14,69 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import zipfile
 ```
 
-Library yang digunakan memiliki fungsi sebagai berikut:
+Penjelasan library:
 
-- **NumPy** → manipulasi array numerik
-- **Pandas** → pengolahan data
-- **TensorFlow/Keras** → membangun dan melatih model CNN
-- **ImageDataGenerator** → preprocessing data gambar
-- **zipfile** → ekstraksi dataset zip
+**NumPy**
+
+Digunakan untuk membantu operasi numerik dan manipulasi array.
+
+**Pandas**
+
+Digunakan untuk pengolahan data pendukung.
+
+**TensorFlow dan Keras**
+
+Digunakan untuk membangun, melatih, dan mengevaluasi model CNN.
+
+**ImageDataGenerator**
+
+Digunakan untuk preprocessing data gambar serta membagi data training dan validation.
+
+**zipfile**
+
+Digunakan untuk mengekstrak dataset dari file ZIP.
 
 ---
 
-## Dataset
+## 2. Dataset
 
-Dataset yang digunakan adalah dataset **Rock-Paper-Scissors** yang berisi:
-
-- Total gambar: **2188**
-- Data training: **1751 gambar**
-- Data validasi: **437 gambar**
-- Jumlah kelas: **3**
+Dataset yang digunakan adalah **Rock Paper Scissors Images**.
 
 Struktur dataset:
 
-```
-
+```text
 rockpaperscissors/
 │
 ├── paper/
 ├── rock/
 └── scissors/
-
 ```
+
+Dataset terdiri dari tiga kelas:
+
+- paper → gambar tangan kertas
+- rock → gambar tangan batu
+- scissors → gambar tangan gunting
+
+Jumlah data yang digunakan berdasarkan output program:
+
+| Dataset | Jumlah |
+|----------|---------|
+| Training | 1751 gambar |
+| Validation | 437 gambar |
+| Total | 2188 gambar |
 
 ---
 
-## Tahapan Program
+## 3. Persiapan Data Menggunakan ImageDataGenerator
 
-### 1. Ekstraksi Dataset
-
-Dataset yang masih berbentuk file ZIP diekstrak terlebih dahulu menggunakan library `zipfile`.
-
-```python
-with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-    zip_ref.extractall(extract_path)
-```
-
----
-
-### 2. Preprocessing Data
-
-Data diproses menggunakan `ImageDataGenerator`.
-
-Parameter yang digunakan:
-
-- Rescale = 1/255
-- Validation split = 20%
-- Target size = (150,150)
-- Batch size = 32
+Tahap preprocessing dilakukan menggunakan:
 
 ```python
 train_datagen = ImageDataGenerator(
@@ -92,133 +85,297 @@ train_datagen = ImageDataGenerator(
 )
 ```
 
+Fungsi preprocessing yang digunakan:
+
+### Rescaling
+
+Nilai piksel gambar diubah dari:
+
+```text
+0–255
+```
+
+menjadi:
+
+```text
+0–1
+```
+
+menggunakan:
+
+```python
+rescale=1./255
+```
+
+### Pembagian Dataset
+
+Dataset dibagi menjadi:
+
+- Data training = 80%
+- Data validation = 20%
+
+### Konfigurasi Data
+
+```python
+target_size=(150,150)
+batch_size=32
+class_mode='categorical'
+```
+
+Keterangan:
+
+- target_size → mengubah ukuran gambar menjadi 150×150 piksel
+- batch_size → memproses 32 gambar setiap iterasi
+- class_mode → klasifikasi multikelas
+
 ---
 
-### 3. Pembuatan Model CNN
+## 4. Arsitektur Model CNN
 
-Arsitektur CNN yang digunakan:
+Model CNN dibangun menggunakan `Sequential()`.
 
-| Layer | Output |
-|---------|----------|
-| Conv2D (32 filter) | (148,148,32) |
-| MaxPooling2D | (74,74,32) |
-| Conv2D (64 filter) | (72,72,64) |
-| MaxPooling2D | (36,36,64) |
-| Conv2D (128 filter) | (34,34,128) |
-| MaxPooling2D | (17,17,128) |
-| Flatten | 36992 |
-| Dense (512 neuron) | 512 |
-| Dense Output (3 neuron) | 3 |
+Arsitektur model:
 
-Kode model:
+| Layer | Konfigurasi |
+|---------|-------------|
+| Conv2D | 32 filter (3×3), ReLU |
+| MaxPooling2D | (2×2) |
+| Conv2D | 64 filter (3×3), ReLU |
+| MaxPooling2D | (2×2) |
+| Conv2D | 128 filter (3×3), ReLU |
+| MaxPooling2D | (2×2) |
+| Flatten | - |
+| Dense | 512 neuron, ReLU |
+| Dense | 3 neuron, Softmax |
+
+Implementasi model:
 
 ```python
 model = Sequential([
-    Conv2D(32,(3,3),activation='relu',
-           input_shape=(150,150,3)),
-    MaxPooling2D(2,2),
 
-    Conv2D(64,(3,3),activation='relu'),
-    MaxPooling2D(2,2),
+Conv2D(
+32,(3,3),
+activation='relu',
+input_shape=(150,150,3)
+),
 
-    Conv2D(128,(3,3),activation='relu'),
-    MaxPooling2D(2,2),
+MaxPooling2D(2,2),
 
-    Flatten(),
+Conv2D(
+64,(3,3),
+activation='relu'
+),
 
-    Dense(512,activation='relu'),
-    Dense(3,activation='softmax')
+MaxPooling2D(2,2),
+
+Conv2D(
+128,(3,3),
+activation='relu'
+),
+
+MaxPooling2D(2,2),
+
+Flatten(),
+
+Dense(
+512,
+activation='relu'
+),
+
+Dense(
+3,
+activation='softmax'
+)
+
 ])
 ```
 
+Penjelasan layer:
+
+**Conv2D**
+
+Mengekstraksi fitur dari gambar menggunakan filter.
+
+**MaxPooling2D**
+
+Mengurangi dimensi feature map agar proses training lebih efisien.
+
+**Flatten**
+
+Mengubah data multidimensi menjadi vektor satu dimensi.
+
+**Dense**
+
+Melakukan proses klasifikasi berdasarkan fitur yang diperoleh.
+
 ---
 
-## Kompilasi Model
+## 5. Kompilasi Model
 
-Model menggunakan:
-
-- Loss function: `categorical_crossentropy`
-- Optimizer: `adam`
-- Metrics: `accuracy`
+Model dikompilasi menggunakan:
 
 ```python
 model.compile(
-    loss='categorical_crossentropy',
-    optimizer='adam',
-    metrics=['accuracy']
+
+loss='categorical_crossentropy',
+optimizer='adam',
+metrics=['accuracy']
+
 )
 ```
 
+Konfigurasi:
+
+**Loss Function**
+
+```text
+categorical_crossentropy
+```
+
+Digunakan untuk klasifikasi multi-kelas.
+
+**Optimizer**
+
+```text
+adam
+```
+
+Digunakan untuk memperbarui bobot model.
+
+**Metrics**
+
+```text
+accuracy
+```
+
+Digunakan untuk mengukur tingkat akurasi model.
+
 ---
 
-## Training Model
+## 6. Proses Training
 
-Model dilatih sebanyak:
-
-- Epoch = 10
-- Batch size = 32
+Training dilakukan menggunakan:
 
 ```python
-history = model.fit(
-    train_generator,
-    validation_data=validation_generator,
-    epochs=10
+history=model.fit(
+
+train_generator,
+validation_data=validation_generator,
+epochs=10
+
 )
 ```
 
+Parameter pelatihan:
+
+| Parameter | Nilai |
+|------------|--------|
+| Epoch | 10 |
+| Batch Size | 32 |
+
 ---
 
-## Hasil Training
+## 7. Hasil Training dan Evaluasi
 
-Hasil pelatihan menunjukkan peningkatan akurasi yang cukup baik.
+Berdasarkan output program:
 
-| Epoch | Accuracy | Validation Accuracy |
-|---------|------------|----------------------|
-| 1 | 64.82% | 88.33% |
-| 5 | 99.20% | 96.11% |
-| 10 | 100% | 97.03% |
+| Parameter | Hasil |
+|------------|--------|
+| Validation Accuracy | 97.03% |
+| Validation Loss | 0.0978 |
 
-Hasil evaluasi akhir:
+Evaluasi dilakukan menggunakan:
 
 ```python
-Validation loss: 0.0978
-Validation accuracy: 0.9703
+val_loss,val_acc=model.evaluate(
+validation_generator
+)
+
+print(
+f'Validation loss:{val_loss},
+Validation accuracy:{val_acc}'
+)
 ```
+
+Model memperoleh akurasi validasi yang tinggi sehingga dapat mengklasifikasikan gambar dengan baik.
 
 ---
 
-## Hasil Prediksi
+## 8. Prediksi Model
 
-Model menghasilkan probabilitas prediksi untuk masing-masing kelas:
+Prediksi dilakukan menggunakan:
+
+```python
+predictions=model.predict(
+validation_generator
+)
+
+print(predictions)
+```
 
 Contoh output:
 
 ```python
 [[2.5656090e-07 4.7995679e-17 9.9999970e-01]
- [6.4051501e-06 7.7203853e-19 9.9999350e-01]
- [3.5617288e-12 9.7182449e-24 9.9999994e-01]]
+
+[6.4051501e-06 7.7203853e-19 9.9999350e-01]
+
+[3.5617288e-12 9.7182449e-24 9.9999994e-01]]
 ```
 
-Output menunjukkan probabilitas klasifikasi pada:
-
-- Rock
-- Paper
-- Scissors
-
-Nilai probabilitas tertinggi menunjukkan hasil prediksi kelas gambar.
+Nilai terbesar menunjukkan kelas hasil prediksi.
 
 ---
 
-## Kesimpulan
+## 9. Cara Menjalankan Program
 
-Berdasarkan hasil implementasi CNN untuk klasifikasi gambar Rock-Paper-Scissors, model berhasil mencapai:
+Install dependency:
 
-- Training Accuracy = **100%**
-- Validation Accuracy = **97.03%**
+```bash
+pip install tensorflow numpy pandas
+```
 
-Hasil tersebut menunjukkan bahwa model CNN mampu mempelajari pola gambar dengan baik dan melakukan klasifikasi dengan tingkat akurasi yang tinggi.
+Ekstrak dataset:
+
+```bash
+rockpaperscissors.zip
+```
+
+Pastikan struktur folder:
+
+```text
+rockpaperscissors/
+├── paper/
+├── rock/
+└── scissors/
+```
+
+Buka file notebook:
+
+```text
+main.ipynb
+```
+
+Kemudian jalankan seluruh cell menggunakan Google Colab atau Jupyter Notebook.
 
 ---
 
-**Nama:** Edgina Syafa  
-**NIM:** H1D024046  
+## 10. Struktur Repository
+
+```text
+H1D024046-PraktikumKB-Pertemuan8
+│
+├── main.ipynb
+├── README.md
+└── rockpaperscissors/
+    ├── paper/
+    ├── rock/
+    └── scissors/
+```
+
+---
+
+Nama : Edgina Syafa  
+NIM : H1D024046  
+Shift : F
+Shift KRS : B
